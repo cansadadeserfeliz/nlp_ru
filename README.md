@@ -19,3 +19,12 @@ http://web-local.rudn.ru/web-local/prep/rj/?id=891
 **Лабораторная работа:** Разработка алгоритма морфологического анализа текстов, основанного на словарном подходе
 
 РУДН Российский Университет дружбы народов, Москва
+
+------------
+
+## Run example script
+
+	python example.py
+
+Input file: `input.txt`
+Output file: `output.html`
