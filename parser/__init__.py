@@ -10,16 +10,162 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
 class Parser:
-    def __init__(self, dict, text):
-        self.dict = dict # дерево-словарь
-        self.text = text # сходный текст
+    def __init__(self):
+        self.words_tree = {}  # дерево-словарь
         self.sentences = []
         self.orig_sentences = []
         self.output_file = os.path.join(BASE_DIR, 'output.html')
         self.output_string = ''
-        self.parse()
 
-    def parse(self):
+        ################################################################################
+
+        # читаем словарь словоформ
+
+        # Каждая статья в следующем формате:
+        # словоформа часть речи; падеж; род; одушевленность; число
+
+        print "reading Zaliznyak's dictionary..."
+        start_time = time.clock()
+
+        words = []
+        forms = []
+        normal_form_noun = u""
+        normal_form_adj = u""
+        for line in open(os.path.join(BASE_DIR, 'dicts', 'dict.txt'), 'r').readlines():
+            # читаем строки за исключением символа конца строки \n
+            word, form = line.decode('utf8').rstrip('\n').split('\t')
+            form = form.split(';') # например, вентиляция с;и.;ж;но;ед
+
+            # добавим нормальную форму
+            # к существительному
+            if form[0] == u'с':
+                # если это нормальная форма существительного - запомним её
+                if form[1] == u'и.':
+                    normal_form_noun = word
+                    form.append(u"я и есть нормальная форма")
+                # если это ненормальная форма, добавим к ней нормальную :)
+                else:
+                    form.append(u"НФ = " + normal_form_noun)
+            # к прилагательному
+            if form[0] == u'п':
+                # если это нормальная форма существительного - запомним её
+                if form[1] == u'и.':
+                    normal_form_adj = word
+                    form.append(u"я и есть нормальная форма")
+                # если это ненормальная форма, добавим к ней нормальную :)
+                else:
+                    form.append(u"НФ = " + normal_form_adj)
+
+
+            # переобозначим сокращения. чтобы было удобнее читать
+            # часть речи
+            if form[0] != '':
+                if form[0] == u'с':
+                    form[0] = u'сущ.'
+                elif form[0] == u'г':
+                    form[0] = u'глаг.'
+                elif form[0] == u'п':
+                    form[0] = u'прил.'
+            # падеж
+            if form[1] != u'':
+                if form[1] == u'и.':
+                    form[1] = u'им. п.'
+                elif form[1] == u'р.':
+                    form[1] = u'род. п.'
+                elif form[1] == u'в.':
+                    form[1] = u'вин. п.'
+                elif form[1] == u'д.':
+                    form[1] = u'дат. п.'
+                elif form[1] == u'т.':
+                    form[1] = u'твор. п.'
+                elif form[1] == u'п.':
+                    form[1] = u'предл. п.'
+            # род
+            if form[2] != u'':
+                if form[2] == u'м':
+                    form[2] = u'муж. род'
+                elif form[2] == u'ж':
+                    form[2] = u'жен. род'
+                elif form[2] == u'c':
+                    form[2] = u'сред. род'
+            # одушевленность
+            if form[3] != '':
+                if form[3] == u'од':
+                    form[3] = u'одуш.'
+                elif form[3] == u'но':
+                    form[3] = u'неодуш.'
+            # число
+            if form[4] != '':
+                if form[4] == u'ед':
+                    form[4] = u'ед. число'
+                elif form[4] == u'мн':
+                    form[4] = u'множ. число'
+
+            words.append(word)
+            forms.append(form)
+
+        print "- adding prepositions..."
+        for line in open(os.path.join(BASE_DIR, 'dicts', 'prepositions.txt'), 'r').readlines():
+            # читаем строки за исключением символа конца строки \n
+            #word = line.rstrip('\n')
+            word, form = line.decode('utf8').rstrip('\n').split('\t')
+            words.append(word)
+            forms.append([u"предлог", form])
+
+        print "- adding conjunctions..."
+        for line in open(os.path.join(BASE_DIR, 'dicts', 'conjunctions.txt'), 'r').readlines():
+            # читаем строки за исключением символа конца строки \n
+            word = line.decode('utf8').rstrip('\n')
+            words.append(word)
+            forms.append([u"союз"])
+
+        print "- adding adverbs..."
+        for line in open(os.path.join(BASE_DIR, 'dicts', 'adverbs.txt'), 'r').readlines():
+            # читаем строки за исключением символа конца строки \n
+            word = line.decode('utf8').rstrip('\n')
+            #form = form.split(';')
+            words.append(word)
+            forms.append([u"наречие"])
+
+        print "- geographical names..."
+        for line in open(os.path.join(BASE_DIR, 'dicts', 'geographic.txt'), 'r').readlines():
+            # читаем строки за исключением символа конца строки \n
+            word = line.decode('utf8').rstrip('\n')
+            #form = form.split(';')
+            words.append(word)
+            forms.append([u"географическое название"])
+
+        for line in open(os.path.join(BASE_DIR, 'dicts', 'other.txt'), 'r').readlines():
+            # читаем строки за исключением символа конца строки \n
+            word, form = line.decode('utf8').rstrip('\n').split('\t')
+            words.append(word)
+            forms.append([form])
+
+        # все это выглядит как-то так:
+        #words = ['mama', 'milk', 'moon', 'makes', 'make', 'mood', 'moon']
+        #forms = [ [1], [2], ['3a'], [4], [5], [6], ['3b'] ]
+        #{'m': {'a': {'k': {'e': {'s': {'form': [[4]]}, 'form': [[5]]}}, 'm': {'a': {'form': [[1]]}}}, 'i': {'l': {'k': {'form': [[2]]}}}, 'o': {'o': {'d': {'form': [[6]]}, 'n': {'form': [['3a'], ['3b']]}}}}}
+
+        print "creating a Tree..."
+        self.words_tree = {} # наше дерево
+        for word, form in zip(words, forms):
+            self.add_word_to_dict(word, form)
+
+        print "it took", time.clock() - start_time, "seconds"
+
+    def add_word_to_dict(self, word, form):
+        level = self.words_tree
+        for letter in word:
+            if (not level.has_key(letter)):
+                level[letter] = {}
+            level = level[letter]
+        if level.has_key('form'):
+            level['form'].append(form)
+        else: level['form'] = [form]
+
+    def parse(self, text):
+        self.text = text  # сходный текст
+
         file = open(self.output_file, 'w')
         self.output_string += u"""
             <html>
@@ -29,7 +175,7 @@ class Parser:
             <body>
                 <h3>Исходный текст:</h3>
                 <p>{0}</p>
-        """.format(text)
+        """.format(self.text)
 
         print "- noting down the time..."
         start_time = time.clock()
@@ -212,7 +358,7 @@ class Parser:
 
     # находит список М.Х. в словаре, соответствующих слову word
     def get_forms(self, word):
-        level = self.dict
+        level = self.words_tree
         for letter in word:
             if level.get(letter):
                 level = level.get(letter)
@@ -315,166 +461,3 @@ class Parser:
         # если так ничего и не нашли
         description = u'неубивайменя'
         return (description, None)
-
-
-def add_word_to_dict(dict, word, form):
-    level = dict
-    for letter in word:
-        if (not level.has_key(letter)):
-            level[letter] = {}
-        level = level[letter]
-    if level.has_key('form'):
-        level['form'].append(form)
-    else: level['form'] = [form]
-
-################################################################################
-
-# читаем словарь словоформ
-
-# Каждая статья в следующем формате:
-# словоформа часть речи; падеж; род; одушевленность; число
-
-print "reading Zaliznyak's dictionary..."
-start_time = time.clock()
-
-words = []
-forms = []
-normal_form_noun = u""
-normal_form_adj = u""
-for line in open(os.path.join(BASE_DIR, 'dicts', 'dict.txt'), 'r').readlines():
-    # читаем строки за исключением символа конца строки \n
-    word, form = line.decode('utf8').rstrip('\n').split('\t')
-    form = form.split(';') # например, вентиляция с;и.;ж;но;ед
-
-    # добавим нормальную форму
-    # к существительному
-    if form[0] == u'с':
-        # если это нормальная форма существительного - запомним её
-        if form[1] == u'и.':
-            normal_form_noun = word
-            form.append(u"я и есть нормальная форма")
-        # если это ненормальная форма, добавим к ней нормальную :)
-        else:
-            form.append(u"НФ = " + normal_form_noun)
-    # к прилагательному
-    if form[0] == u'п':
-        # если это нормальная форма существительного - запомним её
-        if form[1] == u'и.':
-            normal_form_adj = word
-            form.append(u"я и есть нормальная форма")
-        # если это ненормальная форма, добавим к ней нормальную :)
-        else:
-            form.append(u"НФ = " + normal_form_adj)
-
-
-    # переобозначим сокращения. чтобы было удобнее читать
-    # часть речи
-    if form[0] != '':
-        if form[0] == u'с':
-            form[0] = u'сущ.'
-        elif form[0] == u'г':
-            form[0] = u'глаг.'
-        elif form[0] == u'п':
-            form[0] = u'прил.'
-    # падеж
-    if form[1] != u'':
-        if form[1] == u'и.':
-            form[1] = u'им. п.'
-        elif form[1] == u'р.':
-            form[1] = u'род. п.'
-        elif form[1] == u'в.':
-            form[1] = u'вин. п.'
-        elif form[1] == u'д.':
-            form[1] = u'дат. п.'
-        elif form[1] == u'т.':
-            form[1] = u'твор. п.'
-        elif form[1] == u'п.':
-            form[1] = u'предл. п.'
-    # род
-    if form[2] != u'':
-        if form[2] == u'м':
-            form[2] = u'муж. род'
-        elif form[2] == u'ж':
-            form[2] = u'жен. род'
-        elif form[2] == u'c':
-            form[2] = u'сред. род'
-    # одушевленность
-    if form[3] != '':
-        if form[3] == u'од':
-            form[3] = u'одуш.'
-        elif form[3] == u'но':
-            form[3] = u'неодуш.'
-    # число
-    if form[4] != '':
-        if form[4] == u'ед':
-            form[4] = u'ед. число'
-        elif form[4] == u'мн':
-            form[4] = u'множ. число'
-
-    words.append(word)
-    forms.append(form)
-
-print "- adding prepositions..."
-for line in open(os.path.join(BASE_DIR, 'dicts', 'prepositions.txt'), 'r').readlines():
-    # читаем строки за исключением символа конца строки \n
-    #word = line.rstrip('\n')
-    word, form = line.decode('utf8').rstrip('\n').split('\t')
-    words.append(word)
-    forms.append([u"предлог", form])
-
-print "- adding conjunctions..."
-for line in open(os.path.join(BASE_DIR, 'dicts', 'conjunctions.txt'), 'r').readlines():
-    # читаем строки за исключением символа конца строки \n
-    word = line.decode('utf8').rstrip('\n')
-    words.append(word)
-    forms.append([u"союз"])
-
-print "- adding adverbs..."
-for line in open(os.path.join(BASE_DIR, 'dicts', 'adverbs.txt'), 'r').readlines():
-    # читаем строки за исключением символа конца строки \n
-    word = line.decode('utf8').rstrip('\n')
-    #form = form.split(';')
-    words.append(word)
-    forms.append([u"наречие"])
-
-print "- geographical names..."
-for line in open(os.path.join(BASE_DIR, 'dicts', 'geographic.txt'), 'r').readlines():
-    # читаем строки за исключением символа конца строки \n
-    word = line.decode('utf8').rstrip('\n')
-    #form = form.split(';')
-    words.append(word)
-    forms.append([u"географическое название"])
-
-for line in open(os.path.join(BASE_DIR, 'dicts', 'other.txt'), 'r').readlines():
-    # читаем строки за исключением символа конца строки \n
-    word, form = line.decode('utf8').rstrip('\n').split('\t')
-    words.append(word)
-    forms.append([form])
-
-# все это выглядит как-то так:
-#words = ['mama', 'milk', 'moon', 'makes', 'make', 'mood', 'moon']
-#forms = [ [1], [2], ['3a'], [4], [5], [6], ['3b'] ]
-#{'m': {'a': {'k': {'e': {'s': {'form': [[4]]}, 'form': [[5]]}}, 'm': {'a': {'form': [[1]]}}}, 'i': {'l': {'k': {'form': [[2]]}}}, 'o': {'o': {'d': {'form': [[6]]}, 'n': {'form': [['3a'], ['3b']]}}}}}
-
-print "creating a Tree..."
-dict = {} # наше дерево
-for word, form in zip(words, forms):
-        add_word_to_dict(dict, word, form)
-
-print "it took", time.clock() - start_time, "seconds"
-
-# читаем исходный файл с текстом
-file = open(os.path.join(BASE_DIR, 'input.txt'), 'r')
-text = file.read().decode('utf8')
-file.close()
-
-# в конце текста должен быть пробел или конец строки,
-# иначе не сможем распознать последнее предложение :(
-text += u" "
-text = text.replace(u"ё", u"е")
-text = text.replace(u"—", u"-")
-################################################################################
-
-# непосредственно анализ...
-print "starting Parser..."
-my_parser = Parser(dict, text)
