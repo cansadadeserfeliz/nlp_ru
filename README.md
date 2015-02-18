@@ -11,8 +11,6 @@ Morphological analyzer for Russian language (written in Python)
 
 Peoples’ Friendship University of Russia, Moscow
 
------------
-
 ## Морфологический анализатор для русского языка (на языке Python)
 
 **Курс:** [Анализ естественных языков](http://web-local.rudn.ru/web-local/prep/rj/?id=891)
@@ -24,8 +22,6 @@ Peoples’ Friendship University of Russia, Moscow
 **Лабораторная работа:** Разработка алгоритма морфологического анализа текстов, основанного на словарном подходе
 
 РУДН Российский Университет дружбы народов, Москва
-
-------------
 
 ## Run example script
 
