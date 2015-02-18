@@ -5,7 +5,6 @@ import os
 import time
 import re
 import itertools
-from mylowercase import to_lower
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -259,7 +258,7 @@ class Parser:
         # сначала ищем форму в словаре
         # предварительно перевести слово в нижний регистр
         #print word, word.lower() # какая же все-таки БЯКА эти кодировочки :(
-        all_forms = self.get_forms(to_lower(word))
+        all_forms = self.get_forms(word.lower())
         if all_forms != None:
             # исключить все повторяющиеся формы
             forms = [list(x) for x in set(tuple(x) for x in all_forms)]
@@ -342,7 +341,7 @@ words = []
 forms = []
 normal_form_noun = ""
 normal_form_adj = ""
-for line in open(os.path.join(BASE_DIR, '..', 'dict.txt'), 'r').readlines():
+for line in open(os.path.join(BASE_DIR, 'dicts', 'dict.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
     word, form = line.rstrip('\n').split('\t')
     form = form.split(';') # например, вентиляция с;и.;ж;но;ед
@@ -416,7 +415,7 @@ for line in open(os.path.join(BASE_DIR, '..', 'dict.txt'), 'r').readlines():
     forms.append(form)
 
 print "- adding prepositions..."
-for line in open(os.path.join(BASE_DIR, '..', 'prepositions.txt'), 'r').readlines():
+for line in open(os.path.join(BASE_DIR, 'dicts', 'prepositions.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
     #word = line.rstrip('\n')
     word, form = line.rstrip('\n').split('\t')
@@ -424,14 +423,14 @@ for line in open(os.path.join(BASE_DIR, '..', 'prepositions.txt'), 'r').readline
     forms.append(["предлог", form])
 
 print "- adding conjunctions..."
-for line in open(os.path.join(BASE_DIR, '..', 'conjunctions.txt'), 'r').readlines():
+for line in open(os.path.join(BASE_DIR, 'dicts', 'conjunctions.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
     word = line.rstrip('\n')
     words.append(word)
     forms.append(["союз"])
 
 print "- adding adverbs..."
-for line in open(os.path.join(BASE_DIR, '..', 'adverbs.txt'), 'r').readlines():
+for line in open(os.path.join(BASE_DIR, 'dicts', 'adverbs.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
     word = line.rstrip('\n')
     #form = form.split(';')
@@ -439,14 +438,14 @@ for line in open(os.path.join(BASE_DIR, '..', 'adverbs.txt'), 'r').readlines():
     forms.append(["наречие"])
 
 print "- geographical names..."
-for line in open(os.path.join(BASE_DIR, '..', 'geographic.txt'), 'r').readlines():
+for line in open(os.path.join(BASE_DIR, 'dicts', 'geographic.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
     word = line.rstrip('\n')
     #form = form.split(';')
     words.append(word)
     forms.append(["географическое название"])
 
-for line in open(os.path.join(BASE_DIR, '..', 'other.txt'), 'r').readlines():
+for line in open(os.path.join(BASE_DIR, 'dicts', 'other.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
     word, form = line.rstrip('\n').split('\t')
     words.append(word)
@@ -465,7 +464,7 @@ for word, form in zip(words, forms):
 print "it took", time.clock() - start_time, "seconds"
 
 # читаем исходный файл с текстом
-file = open(os.path.join(BASE_DIR, '..', 'input.txt'), 'r')
+file = open(os.path.join(BASE_DIR, 'input.txt'), 'r')
 text = file.read()
 file.close()
 
