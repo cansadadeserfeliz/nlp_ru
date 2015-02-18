@@ -21,15 +21,15 @@ class Parser:
 
     def parse(self):
         file = open(self.output_file, 'w')
-        self.output_string += """
+        self.output_string += u"""
             <html>
             <head>
-                    <title>Parser</title>
+                <title>Parser</title>
             </head>
             <body>
-        """
-        self.output_string += "<h3>Исходный текст:</h3>\n"
-        self.output_string += '<p>' + text + '</p>\n'
+                <h3>Исходный текст:</h3>
+                <p>{0}</p>
+        """.format(text)
 
         print "- noting down the time..."
         start_time = time.clock()
@@ -52,18 +52,18 @@ class Parser:
         # анализировать предложения
         sent_num = 1
         for sentence in self.sentences:
-            self.output_string += "<h3>Предложение " + sent_num.__str__() + ":</h3>\n"
+            self.output_string += u"<h3>Предложение {0}:</h3>\n".format(sent_num)
             self.parse_sentence(sentence)
             sent_num += 1   
 
         time_for_parsing = time.clock() - start_time
-        self.output_string += "<h3>Time = " + time_for_parsing.__str__() + " seconds </h3>\n"
+        self.output_string += u"<h3>Time = {0} seconds </h3>\n".format(time_for_parsing)
         print "- parsing took", time_for_parsing, "seconds"
         self.output_string += """
             </body>
             </html>
         """
-        file.write(self.output_string)
+        file.write(self.output_string.encode('UTF-8'))
         file.close()
 
 
@@ -74,7 +74,7 @@ class Parser:
         for word in sentence:
             description, all_forms = self.get_description(word)
             # вывести слово (жирненьким) + его М.Х.
-            self.output_string += "<b>" + word + "</b>: " + description + "<br />\n"
+            self.output_string += u"<b>{0}</b>: {1}<br />\n".format(word, description)
 
             # если формы для этого слова вообще есть
             # формы есть только для слов из словаря: сущ, глаг, предл, союз...
@@ -85,7 +85,7 @@ class Parser:
                 forms_in_sentence.append(all_forms)
         
         # Синтаксический анализ
-        self.output_string += "<br /><i><b>Синтаксический анализ:</b></i><br />\n"
+        self.output_string += u"<br /><i><b>Синтаксический анализ:</b></i><br />\n"
 
         counter_for_versions = 1
         # просматриваем все возможные сочетания форм (декартово произведение)
@@ -111,14 +111,14 @@ class Parser:
                 #      2- падеж, 3- род, 4- одуш., 5- число]
 
                 # если мы наткнулись на прилагательное
-                if form[1] == 'прил.':
+                if form[1] == u'прил.':
                     is_adj = True # запомним, что мы его встретили
                     # запомним его характеристики (падеж, род, число)
                     adj_forms.append([form[2], form[3], form[5]])
                     new_NP_group.append(form[0]) # добавляем в именную групу
                     continue # переходим к следующей form в списке
                 # если мы наткнулись на существительное и перед ним было прил.
-                if form[1] == 'сущ.' and is_adj:
+                if form[1] == u'сущ.' and is_adj:
                     is_adj = False # забываем про прилагательное
                     noun = [form[2], form[3], form[5]]
                     new_NP_group.append(form[0]) # добавляем в именную групу
@@ -164,13 +164,13 @@ class Parser:
                 # для предлога: [ 0- само слово, 1- часть речи, 2- падеж ]
 
                 # если мы наткнулись на предлог
-                if form[1] == 'предлог':
+                if form[1] == u'предлог':
                     is_prep = True # запомним, что мы его встретили
                     prep_case = form[2] # запомним его падеж
                     new_PP_group.append(form[0]) # добавляем в предложную групу
                     continue # переходим к следующей form в списке
                 # если мы наткнулись на существительное и перед ним был предлог
-                if form[1] == 'сущ.' and is_prep:
+                if form[1] == u'сущ.' and is_prep:
                     is_prep = False # забываем про пердлог
                     noun_case = form[2]
                     new_PP_group.append(form[0]) # добавляем в именную групу
@@ -188,24 +188,24 @@ class Parser:
             if not forms_are_correct:
                 continue
 
-            self.output_string += "<br /><i>Вариант разбора №" + counter_for_versions.__str__() + "</i>:<br />\n"
+            self.output_string += u"<br /><i>Вариант разбора №" + counter_for_versions.__str__() + "</i>:<br />\n"
             self.output_string += self.forms_toString_V2(mf_version) + "<br />\n"
 
             # напчатать именные группы
             if len(NP_groups) != 0:
-                self.output_string += "<br /><i>NP groups:</i><br />"
+                self.output_string += u"<br /><i>NP groups:</i><br />"
                 for group in NP_groups:
                     for word in group:
                         self.output_string += word + " "
-                    self.output_string += "<br />"
+                    self.output_string += u"<br />"
 
             # напчатать предложные группы
             if len(PP_groups) != 0:
-                self.output_string += "<br /><i>PP groups:</i><br />"
+                self.output_string += u"<br /><i>PP groups:</i><br />"
                 for group in PP_groups:
                     for word in group:
                         self.output_string += word + " "
-                    self.output_string += "<br />"
+                    self.output_string += u"<br />"
 
             counter_for_versions += 1
             
@@ -221,32 +221,32 @@ class Parser:
     # приводит М.Х. в приличный вид, так чтобы их можно было вывести на экран
     # ну.. пронумеровать.. через запятую и все такое
     def forms_toString(self, forms):
-        res = ""
+        res = u""
         form_num = 1
         for form in forms:
-            res += "<br />" + form_num.__str__() + "). "
+            res += u"<br />{0}). ".format(form_num)
             for item in form:
-                if item != "": res += item + ", "
+                if item != u"": res += item + u", "
             res = res[:-2] # удалим последнюю запятую
             form_num += 1
         return res
 
     def forms_toString_V2(self, forms):
-        res = ""
+        res = u""
         form_num = 1
         for form in forms:
-            res += "<br />" + form_num.__str__() + "). "
+            res += u"<br />{0}). ".format(form_num)
             for item in form:
                 if item != "":
-                    if item == "сущ.":
-                        res += "<span style=\"color:blue\">" + item + "</span>, "
-                    elif item == "глаг.":
-                        res += "<span style=\"color:red\">" + item + "</span>, "
-                    elif item == "прил.":
-                        res += "<span style=\"color:green\">" + item + "</span>, "
-                    elif item == "предлог" or item == "союз":
-                        res += "<span style=\"color:gray\">" + item + "</span>, "
-                    else: res += item + ", "
+                    if item == u'сущ.':
+                        res += u'<span style="color:blue">{0}</span>, '.format(item)
+                    elif item == u'глаг.':
+                        res += u'<span style="color:red">{0}</span>, '.format(item)
+                    elif item == u"прил.":
+                        res += u'<span style="color:green">{0}</span>, '.format(item)
+                    elif item == u"предлог" or item == u"союз":
+                        res += u'<span style="color:gray">{0}</span>, '.format(item)
+                    else: res += item + u", "
             res = res[:-2] # удалим последнюю запятую
             form_num += 1
         return res
@@ -269,8 +269,8 @@ class Parser:
             forms_for_sint = []
             form_exists = False
             for form in forms:
-                if form[0] == 'предлог' or form[0] == 'сущ.' or form[0] == 'глаг.' or form[0] == 'прил.':
-                    if form[0] == 'сущ.' or form[0] == 'прил.': form.pop(-1) # удалить НФ
+                if form[0] == u'предлог' or form[0] == u'сущ.' or form[0] == u'глаг.' or form[0] == u'прил.':
+                    if form[0] == u'сущ.' or form[0] == u'прил.': form.pop(-1) # удалить НФ
                     forms_for_sint.append(form)
                     form_exists = True
             if not form_exists: forms_for_sint = None
@@ -279,41 +279,41 @@ class Parser:
         # если в словаре нет данного слова:
 
         # если это градусы (-19°C или 4°F)
-        if re.match(r'[+-]*\d+°[CFKСФК]', word):
-            return ("температура", None)
+        if re.match(ur'[+-]*\d+°[CFKСФК]', word):
+            return (u"температура", None)
 
         # если это дата 12.08.1983 или 31/08/11
         #if re.match(r"\d{1,2}(/.-])\d{1,2}\1\d{2}", word):
-        if re.match(r"[0123]\d[.\-\\/][01]\d[.\-\\/]\d{2,4}", word):
-            return ("дата", None)
+        if re.match(ur"[0123]\d[.\-\\/][01]\d[.\-\\/]\d{2,4}", word):
+            return (u"дата", None)
 
         # если это число 12.8 или -0,1
-        if re.match(r'[+-]*\d+[.,]+\d+', word):
-            return ("действительное число", None)
+        if re.match(ur'[+-]*\d+[.,]+\d+', word):
+            return (u"действительное число", None)
 
         # если это число -12 или -1
-        if re.match(r'[-]\d', word):
-            return ("целое отрицательное число", None)
+        if re.match(ur'[-]\d', word):
+            return (u"целое отрицательное число", None)
 
         # если это число 12 или 1
-        if re.match(r'\d', word):
-            return ("натуральное число", None)
+        if re.match(ur'\d', word):
+            return (u"натуральное число", None)
 
         # если это число 12.8 или 0,1 или -18
         # (на случай, если мы раньше его не нашли)
-        if re.match(r'[+-]*\d+[.,]*\d*', word):
-            return ("число", None)
+        if re.match(ur'[+-]*\d+[.,]*\d*', word):
+            return (u"число", None)
 
         # если это имя собственное
-        if re.match(r'[А-Я][а-я]+\w+', word):
-            return ("имя собственное", None)
+        if re.match(ur'[А-Я][а-я]+\w+', word):
+            return (u"имя собственное", None)
 
         # если это имя собственное
-        if re.match(r'[A-Za-z]\w+', word):
-            return ("иностранное слово", None)
+        if re.match(ur'[A-Za-z]\w+', word):
+            return (u"иностранное слово", None)
 
         # если так ничего и не нашли
-        description = 'неубивайменя'
+        description = u'неубивайменя'
         return (description, None)
 
 
@@ -334,82 +334,82 @@ def add_word_to_dict(dict, word, form):
 # Каждая статья в следующем формате:
 # словоформа часть речи; падеж; род; одушевленность; число
 
-print "reading Zaliznyak\'s dictionary..."
+print "reading Zaliznyak's dictionary..."
 start_time = time.clock()
 
 words = []
 forms = []
-normal_form_noun = ""
-normal_form_adj = ""
+normal_form_noun = u""
+normal_form_adj = u""
 for line in open(os.path.join(BASE_DIR, 'dicts', 'dict.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
-    word, form = line.rstrip('\n').split('\t')
+    word, form = line.decode('utf8').rstrip('\n').split('\t')
     form = form.split(';') # например, вентиляция с;и.;ж;но;ед
 
     # добавим нормальную форму
     # к существительному
-    if form[0] == 'с':
+    if form[0] == u'с':
         # если это нормальная форма существительного - запомним её
-        if form[1] == 'и.':
+        if form[1] == u'и.':
             normal_form_noun = word
-            form.append("я и есть нормальная форма")
+            form.append(u"я и есть нормальная форма")
         # если это ненормальная форма, добавим к ней нормальную :)
         else:
-            form.append("НФ = " + normal_form_noun)
+            form.append(u"НФ = " + normal_form_noun)
     # к прилагательному
-    if form[0] == 'п':
+    if form[0] == u'п':
         # если это нормальная форма существительного - запомним её
-        if form[1] == 'и.':
+        if form[1] == u'и.':
             normal_form_adj = word
-            form.append("я и есть нормальная форма")
+            form.append(u"я и есть нормальная форма")
         # если это ненормальная форма, добавим к ней нормальную :)
         else:
-            form.append("НФ = " + normal_form_adj)
+            form.append(u"НФ = " + normal_form_adj)
 
 
     # переобозначим сокращения. чтобы было удобнее читать
     # часть речи
     if form[0] != '':
-        if form[0] == 'с':
-            form[0] = 'сущ.'
-        elif form[0] == 'г':
-            form[0] = 'глаг.'
-        elif form[0] == 'п':
-            form[0] = 'прил.'
+        if form[0] == u'с':
+            form[0] = u'сущ.'
+        elif form[0] == u'г':
+            form[0] = u'глаг.'
+        elif form[0] == u'п':
+            form[0] = u'прил.'
     # падеж
-    if form[1] != '':
-        if form[1] == 'и.':
-            form[1] = 'им. п.'
-        elif form[1] == 'р.':
-            form[1] = 'род. п.'
-        elif form[1] == 'в.':
-            form[1] = 'вин. п.'
-        elif form[1] == 'д.':
-            form[1] = 'дат. п.'
-        elif form[1] == 'т.':
-            form[1] = 'твор. п.'
-        elif form[1] == 'п.':
-            form[1] = 'предл. п.'
+    if form[1] != u'':
+        if form[1] == u'и.':
+            form[1] = u'им. п.'
+        elif form[1] == u'р.':
+            form[1] = u'род. п.'
+        elif form[1] == u'в.':
+            form[1] = u'вин. п.'
+        elif form[1] == u'д.':
+            form[1] = u'дат. п.'
+        elif form[1] == u'т.':
+            form[1] = u'твор. п.'
+        elif form[1] == u'п.':
+            form[1] = u'предл. п.'
     # род
-    if form[2] != '':
-        if form[2] == 'м':
-            form[2] = 'муж. род'
-        elif form[2] == 'ж':
-            form[2] = 'жен. род'
-        elif form[2] == 'c':
-            form[2] = 'сред. род'
+    if form[2] != u'':
+        if form[2] == u'м':
+            form[2] = u'муж. род'
+        elif form[2] == u'ж':
+            form[2] = u'жен. род'
+        elif form[2] == u'c':
+            form[2] = u'сред. род'
     # одушевленность
     if form[3] != '':
-        if form[3] == 'од':
-            form[3] = 'одуш.'
-        elif form[3] == 'но':
-            form[3] = 'неодуш.'
+        if form[3] == u'од':
+            form[3] = u'одуш.'
+        elif form[3] == u'но':
+            form[3] = u'неодуш.'
     # число
     if form[4] != '':
-        if form[4] == 'ед':
-            form[4] = 'ед. число'
-        elif form[4] == 'мн':
-            form[4] = 'множ. число'
+        if form[4] == u'ед':
+            form[4] = u'ед. число'
+        elif form[4] == u'мн':
+            form[4] = u'множ. число'
 
     words.append(word)
     forms.append(form)
@@ -418,36 +418,36 @@ print "- adding prepositions..."
 for line in open(os.path.join(BASE_DIR, 'dicts', 'prepositions.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
     #word = line.rstrip('\n')
-    word, form = line.rstrip('\n').split('\t')
+    word, form = line.decode('utf8').rstrip('\n').split('\t')
     words.append(word)
-    forms.append(["предлог", form])
+    forms.append([u"предлог", form])
 
 print "- adding conjunctions..."
 for line in open(os.path.join(BASE_DIR, 'dicts', 'conjunctions.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
-    word = line.rstrip('\n')
+    word = line.decode('utf8').rstrip('\n')
     words.append(word)
-    forms.append(["союз"])
+    forms.append([u"союз"])
 
 print "- adding adverbs..."
 for line in open(os.path.join(BASE_DIR, 'dicts', 'adverbs.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
-    word = line.rstrip('\n')
+    word = line.decode('utf8').rstrip('\n')
     #form = form.split(';')
     words.append(word)
-    forms.append(["наречие"])
+    forms.append([u"наречие"])
 
 print "- geographical names..."
 for line in open(os.path.join(BASE_DIR, 'dicts', 'geographic.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
-    word = line.rstrip('\n')
+    word = line.decode('utf8').rstrip('\n')
     #form = form.split(';')
     words.append(word)
-    forms.append(["географическое название"])
+    forms.append([u"географическое название"])
 
 for line in open(os.path.join(BASE_DIR, 'dicts', 'other.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
-    word, form = line.rstrip('\n').split('\t')
+    word, form = line.decode('utf8').rstrip('\n').split('\t')
     words.append(word)
     forms.append([form])
 
@@ -465,14 +465,14 @@ print "it took", time.clock() - start_time, "seconds"
 
 # читаем исходный файл с текстом
 file = open(os.path.join(BASE_DIR, 'input.txt'), 'r')
-text = file.read()
+text = file.read().decode('utf8')
 file.close()
 
 # в конце текста должен быть пробел или конец строки,
 # иначе не сможем распознать последнее предложение :(
-text += " "
-text = text.replace("ё", "е")
-text = text.replace("—", "-")
+text += u" "
+text = text.replace(u"ё", u"е")
+text = text.replace(u"—", u"-")
 ################################################################################
 
 # непосредственно анализ...
