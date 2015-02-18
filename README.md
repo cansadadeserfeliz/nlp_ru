@@ -11,7 +11,7 @@ Morphological analyzer for Russian language (written in Python)
 
 Peoples’ Friendship University of Russia, Moscow
 
-## Морфологический анализатор для русского языка (на языке Python основанный на словаре А.А.Зализняка)
+### Морфологический анализатор для русского языка (на языке Python основанный на словаре А.А.Зализняка)
 
 **Курс:** [Анализ естественных языков](http://web-local.rudn.ru/web-local/prep/rj/?id=891)
 
