@@ -52,3 +52,10 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Configuration
+.requirements_timestamp
+.idea
+.sass-cache
+.tags
+.tags_sorted_by_file
