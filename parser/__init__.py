@@ -16,7 +16,7 @@ class Parser:
         self.text = text # сходный текст
         self.sentences = []
         self.orig_sentences = []
-        self.output_file = os.path.join(BASE_DIR, '..', 'output.html')
+        self.output_file = os.path.join(BASE_DIR, 'output.html')
         self.output_string = ''
         self.parse()
 
@@ -342,7 +342,6 @@ words = []
 forms = []
 normal_form_noun = ""
 normal_form_adj = ""
-print BASE_DIR, os.path.join(BASE_DIR, '..', 'dict.txt')
 for line in open(os.path.join(BASE_DIR, '..', 'dict.txt'), 'r').readlines():
     # читаем строки за исключением символа конца строки \n
     word, form = line.rstrip('\n').split('\t')
