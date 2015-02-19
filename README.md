@@ -10,7 +10,7 @@ Morphological analyzer for Russian language (written in Python)
 
 Peoples’ Friendship University of Russia, Moscow
 
-## Морфологический анализатор для русского языка (на языке Python)
+### Морфологический анализатор для русского языка (на языке Python основанный на словаре А.А.Зализняка)
 
 | Author              | Vera Mazhuga                                                                            |
 |---------------------|-----------------------------------------------------------------------------------------|
